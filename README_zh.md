@@ -58,7 +58,7 @@ EasyDateTime.parse('2025-12-07T10:30:00+08:00').hour  // → 10 ✓
 
 ```yaml
 dependencies:
-  easy_date_time: ^0.1.1
+  easy_date_time: ^0.1.2
 ```
 
 应用启动时初始化一次时区数据库：

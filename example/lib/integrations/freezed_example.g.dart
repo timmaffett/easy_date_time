@@ -6,7 +6,7 @@ part of 'freezed_example.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_Event _$EventFromJson(Map<String, dynamic> json) => _Event(
+_$EventImpl _$$EventImplFromJson(Map<String, dynamic> json) => _$EventImpl(
       id: json['id'] as String,
       title: json['title'] as String,
       startTime:
@@ -16,7 +16,8 @@ _Event _$EventFromJson(Map<String, dynamic> json) => _Event(
       isAllDay: json['isAllDay'] as bool? ?? false,
     );
 
-Map<String, dynamic> _$EventToJson(_Event instance) => <String, dynamic>{
+Map<String, dynamic> _$$EventImplToJson(_$EventImpl instance) =>
+    <String, dynamic>{
       'id': instance.id,
       'title': instance.title,
       'startTime': const EasyDateTimeConverter().toJson(instance.startTime),
@@ -24,7 +25,7 @@ Map<String, dynamic> _$EventToJson(_Event instance) => <String, dynamic>{
       'isAllDay': instance.isAllDay,
     };
 
-_User _$UserFromJson(Map<String, dynamic> json) => _User(
+_$UserImpl _$$UserImplFromJson(Map<String, dynamic> json) => _$UserImpl(
       id: json['id'] as String,
       name: json['name'] as String,
       createdAt:
@@ -35,7 +36,8 @@ _User _$UserFromJson(Map<String, dynamic> json) => _User(
           .fromJson(json['deletedAt'] as String?),
     );
 
-Map<String, dynamic> _$UserToJson(_User instance) => <String, dynamic>{
+Map<String, dynamic> _$$UserImplToJson(_$UserImpl instance) =>
+    <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
       'createdAt': const EasyDateTimeConverter().toJson(instance.createdAt),
@@ -45,7 +47,8 @@ Map<String, dynamic> _$UserToJson(_User instance) => <String, dynamic>{
           const EasyDateTimeNullableConverter().toJson(instance.deletedAt),
     };
 
-_Schedule _$ScheduleFromJson(Map<String, dynamic> json) => _Schedule(
+_$ScheduleImpl _$$ScheduleImplFromJson(Map<String, dynamic> json) =>
+    _$ScheduleImpl(
       id: json['id'] as String,
       scheduledAt:
           const EasyDateTimeConverter().fromJson(json['scheduledAt'] as String),
@@ -54,7 +57,8 @@ _Schedule _$ScheduleFromJson(Map<String, dynamic> json) => _Schedule(
       status: json['status'] as String,
     );
 
-Map<String, dynamic> _$ScheduleToJson(_Schedule instance) => <String, dynamic>{
+Map<String, dynamic> _$$ScheduleImplToJson(_$ScheduleImpl instance) =>
+    <String, dynamic>{
       'id': instance.id,
       'scheduledAt': const EasyDateTimeConverter().toJson(instance.scheduledAt),
       'completedAt':

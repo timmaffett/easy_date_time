@@ -104,9 +104,9 @@ class Event {
     return Event(
       id: json['id'] as String,
       title: json['title'] as String,
-      startTime: EasyDateTime.parse(json['startTime'] as String),
+      startTime: EasyDateTime.fromIso8601String(json['startTime'] as String),
       endTime: json['endTime'] != null
-          ? EasyDateTime.parse(json['endTime'] as String)
+          ? EasyDateTime.fromIso8601String(json['endTime'] as String)
           : null,
     );
   }

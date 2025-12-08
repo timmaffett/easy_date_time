@@ -56,10 +56,15 @@ jobs:
         run: dart pub get
 
       - name: Run tests
-        run: dart test --coverage=coverage
+        run: dart test --coverage=coverage --file-reporter=json:test-results.json
 
-      - name: Install coverage tools
-        run: dart pub global activate coverage
+      - name: Install coverage and test tools
+        run: |
+          dart pub global activate coverage
+          dart pub global activate junitreport
+
+      - name: Convert test results to JUnit
+        run: dart pub global run junitreport:tojunit --input test-results.json --output test-results.xml
 
       - name: Generate coverage report
         run: dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --report-on=lib
@@ -71,6 +76,13 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
           verbose: true
+
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: test-results.xml
 
   test-versions:
     name: Test on Dart ${{ matrix.sdk }}

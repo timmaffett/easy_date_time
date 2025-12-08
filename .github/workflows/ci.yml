@@ -118,6 +118,33 @@ jobs:
       - name: Run tests
         run: dart test
 
+  validate_example:
+    name: Validate Example
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache/hosted
+          key: ${{ runner.os }}-pub-example-${{ hashFiles('example/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-example-
+
+      - name: Install dependencies
+        working-directory: example
+        run: dart pub get
+
+      - name: Analyze example
+        working-directory: example
+        run: dart analyze --fatal-infos
+
   publish-dry-run:
     name: Publish (Dry Run)
     runs-on: ubuntu-latest

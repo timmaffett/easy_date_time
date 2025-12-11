@@ -69,21 +69,25 @@ EasyDateTime.parse('2025-12-07T10:30:00+08:00').hour  // → 10 (期待通り)
 
 ```yaml
 dependencies:
-  easy_date_time: ^0.3.2
+  easy_date_time: ^0.3.3
 ```
 
 **注意**: 正確な計算を行うため、アプリ起動時に**必ず**タイムゾーンデータベースの初期化を行ってください。
 
 ```dart
 void main() {
-  initializeTimeZone();  // 必須
+  EasyDateTime.initializeTimeZone();  // 必須
 
   // オプション: デフォルトのタイムゾーンを設定
-  setDefaultLocation(TimeZones.shanghai);
+  EasyDateTime.setDefaultLocation(TimeZones.shanghai);
 
   runApp(MyApp());
 }
 ```
+
+> [!NOTE]
+> グローバル関数 `initializeTimeZone()` と `setDefaultLocation()` は**非推奨**です。
+> 代わりに `EasyDateTime.initializeTimeZone()` と `EasyDateTime.setDefaultLocation()` を使用してください。
 
 ---
 
@@ -123,7 +127,7 @@ final nairobi = EasyDateTime.now(location: getLocation('Africa/Nairobi'));
 デフォルトを設定すると、`EasyDateTime.now()` は常にそのタイムゾーンを使用します。
 
 ```dart
-setDefaultLocation(TimeZones.shanghai);
+EasyDateTime.setDefaultLocation(TimeZones.shanghai);
 final now = EasyDateTime.now(); // Asia/Shanghai として扱われます
 ```
 
@@ -255,7 +259,7 @@ class EasyDateTimeConverter implements JsonConverter<EasyDateTime, String> {
 
 * `==` 演算子は、タイムゾーンに関わらず**絶対時間（Instant）**の等価性を判定します。
 * 有効な IANA タイムゾーンオフセットのみがサポートされます。非標準のオフセットはエラーとなります。
-* 使用前に `initializeTimeZone()` の呼び出しが必要です。
+* 使用前に `EasyDateTime.initializeTimeZone()` の呼び出しが必要です。
 
 ### 安全な解析
 ユーザー入力を解析する場合は、`tryParse` の使用を推奨します。

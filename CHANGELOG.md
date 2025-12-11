@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.3] - 2025-12-11
+
+### Added
+
+- **DateTime Compatibility Constants**: Added weekday and month constants for drop-in compatibility with `DateTime`:
+  - Weekday: `monday`, `tuesday`, `wednesday`, `thursday`, `friday`, `saturday`, `sunday`, `daysPerWeek`
+  - Month: `january`, `february`, `march`, `april`, `may`, `june`, `july`, `august`, `september`, `october`, `november`, `december`, `monthsPerYear`
+- **Static Configuration Methods**: Added static methods on `EasyDateTime` class for clearer package context:
+  - `EasyDateTime.setDefaultLocation()` - Sets global default timezone
+  - `EasyDateTime.getDefaultLocation()` - Gets current global default
+  - `EasyDateTime.clearDefaultLocation()` - Clears global default
+  - `EasyDateTime.effectiveDefaultLocation` - Gets effective default location
+  - `EasyDateTime.initializeTimeZone()` - Initializes timezone database
+  - `EasyDateTime.isTimeZoneInitialized` - Checks initialization status
+
+### Deprecated
+
+- **Global functions deprecated in favor of static methods** (will be removed in v0.4.0):
+  - `initializeTimeZone()` → Use `EasyDateTime.initializeTimeZone()`
+  - `setDefaultLocation()` → Use `EasyDateTime.setDefaultLocation()`
+  - `getDefaultLocation()` → Use `EasyDateTime.getDefaultLocation()`
+  - `clearDefaultLocation()` → Use `EasyDateTime.clearDefaultLocation()`
+  - `isTimeZoneInitialized` → Use `EasyDateTime.isTimeZoneInitialized`
+
+### Fixed
+
+- Fixed undefined `isTimeZoneInitialized` reference in parsing module
+
+### Contributors
+
+Thanks to [@timmaffett](https://github.com/timmaffett) for this release ([#7](https://github.com/MasterHiei/easy_date_time/pull/7)).
+
 ## [0.3.2] - 2025-12-11
 
 ### Added
@@ -92,6 +124,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release of `easy_date_time` package.
 
+[0.3.3]: https://github.com/MasterHiei/easy_date_time/releases/tag/v0.3.3
 [0.3.2]: https://github.com/MasterHiei/easy_date_time/releases/tag/v0.3.2
 [0.3.1]: https://github.com/MasterHiei/easy_date_time/releases/tag/v0.3.1
 [0.3.0]: https://github.com/MasterHiei/easy_date_time/releases/tag/v0.3.0

@@ -76,7 +76,7 @@ String _formatOffset(Duration offset) {
 /// Returns null if no matching timezone is found or if timezone
 /// database is not initialized.
 Location? _findLocationForOffset(Duration offset) {
-  if (!isTimeZoneInitialized) {
+  if (!init.isTimeZoneInitialized) {
     return null;
   }
 

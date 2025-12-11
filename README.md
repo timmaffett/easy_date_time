@@ -69,26 +69,11 @@ Add the following to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  easy_date_time: ^0.3.2
+  easy_date_time: ^0.3.3
 ```
 
 **Note**: You **must** initialize the timezone database before using the library.
 
-You can use either the global functions or the static methods on `EasyDateTime`:
-
-**Option 1: Global functions**
-```dart
-void main() {
-  initializeTimeZone();  // Required
-
-  // Optional: Set a global default location
-  setDefaultLocation(TimeZones.shanghai);
-
-  runApp(MyApp());
-}
-```
-
-**Option 2: Static methods (more explicit about package context)**
 ```dart
 void main() {
   EasyDateTime.initializeTimeZone();  // Required
@@ -99,6 +84,10 @@ void main() {
   runApp(MyApp());
 }
 ```
+
+> [!NOTE]
+> Global functions like `initializeTimeZone()` and `setDefaultLocation()` are **deprecated**.
+> Use the static methods `EasyDateTime.initializeTimeZone()` and `EasyDateTime.setDefaultLocation()` instead.
 
 ---
 
@@ -137,13 +126,7 @@ final nairobi = EasyDateTime.now(location: getLocation('Africa/Nairobi'));
 
 Setting a default location allows `EasyDateTime.now()` to use that timezone globally.
 
-You can use either the global function or the static method on `EasyDateTime`:
-
 ```dart
-// Option 1: Global function
-setDefaultLocation(TimeZones.shanghai);
-
-// Option 2: Static method (more explicit about package context)
 EasyDateTime.setDefaultLocation(TimeZones.shanghai);
 
 final now = EasyDateTime.now();  // Returns time in Asia/Shanghai
@@ -153,10 +136,10 @@ final now = EasyDateTime.now();  // Returns time in Asia/Shanghai
 
 ```dart
 // Get the current default timezone
-final current = EasyDateTime.getDefaultLocation();  // or getDefaultLocation()
+final current = EasyDateTime.getDefaultLocation();
 
 // Clear the default (reverts to system local timezone)
-EasyDateTime.clearDefaultLocation();  // or clearDefaultLocation()
+EasyDateTime.clearDefaultLocation();
 
 // Get the effective default location (user-set or system local)
 final effective = EasyDateTime.effectiveDefaultLocation;  // or effectiveDefaultLocation
@@ -290,7 +273,7 @@ class EasyDateTimeConverter implements JsonConverter<EasyDateTime, String> {
 
 * `==` calculates equality based on the **absolute instant**, ignoring timezone differences.
 * Only valid IANA timezone offsets are supported; non-standard offsets will throw an error.
-* `initializeTimeZone()` must be called before use.
+* `EasyDateTime.initializeTimeZone()` must be called before use.
 
 ### Parsing User Input
 

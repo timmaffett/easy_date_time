@@ -69,21 +69,25 @@ EasyDateTime.parse('2025-12-07T10:30:00+08:00').hour  // → 10 (符合预期)
 
 ```yaml
 dependencies:
-  easy_date_time: ^0.3.2
+  easy_date_time: ^0.3.3
 ```
 
 **注意**：为了确保时区计算准确，**必须**在应用启动前初始化时区数据库：
 
 ```dart
 void main() {
-  initializeTimeZone();  // 必须调用
+  EasyDateTime.initializeTimeZone();  // 必须调用
 
   // 可选：设置全局默认时区
-  setDefaultLocation(TimeZones.shanghai);
+  EasyDateTime.setDefaultLocation(TimeZones.shanghai);
 
   runApp(MyApp());
 }
 ```
+
+> [!NOTE]
+> 全局函数 `initializeTimeZone()` 和 `setDefaultLocation()` 已**废弃**。
+> 请改用 `EasyDateTime.initializeTimeZone()` 和 `EasyDateTime.setDefaultLocation()`。
 
 ---
 
@@ -120,7 +124,7 @@ final nairobi = EasyDateTime.now(location: getLocation('Africa/Nairobi'));
 设置全局默认值后，`EasyDateTime.now()` 将自动适配该时区：
 
 ```dart
-setDefaultLocation(TimeZones.shanghai);
+EasyDateTime.setDefaultLocation(TimeZones.shanghai);
 final now = EasyDateTime.now(); // 此时为 Asia/Shanghai 时间
 ```
 
@@ -251,7 +255,7 @@ class EasyDateTimeConverter implements JsonConverter<EasyDateTime, String> {
 
 * `==` 运算符比较的是**绝对时间戳**是否相等，而非原始数值。
 * 只有有效的 IANA 时区偏移才能被正确解析，非标准偏移将抛出异常。
-* 请务必调用 `initializeTimeZone()` 进行初始化。
+* 请务必调用 `EasyDateTime.initializeTimeZone()` 进行初始化。
 
 ### 安全解析
 对于不确定的用户输入，建议使用 `tryParse`：

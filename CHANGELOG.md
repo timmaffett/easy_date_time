@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **New Format Tokens**:
   - `EEE` - Day of week (Mon, Tue...)
   - `MMM` - Month name (Jan, Feb...)
+  - `xxxxx` - Timezone offset with colon (+08:00)
   - `xxxx` - Timezone offset (+0800)
   - `xx` - Timezone offset short (+08)
   - `X` - ISO timezone (Z or +0800)

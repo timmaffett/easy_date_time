@@ -77,17 +77,13 @@ void main() {
     });
   });
 
-  group('TimeZones InvalidTimeZoneException', () {
-    test('_getSafeLocation throws InvalidTimeZoneException for invalid zone',
-        () {
-      // This tests the InvalidTimeZoneException throw path in timezones.dart
-      // We can't directly call _getSafeLocation, but we can trigger it
-      // by accessing a getter that would fail if the location doesn't exist
-      // However, all built-in getters use valid locations.
-      // The exception would only be thrown if the IANA database changes.
-      // For now, we verify that valid locations work correctly.
+  group('TimeZones Safety', () {
+    test('Static timezone getters return valid locations', () {
+      // Verifies that all built-in static accessors point to valid locations
+      // in the IANA database and do not throw.
       expect(() => TimeZones.tokyo, returnsNormally);
       expect(() => TimeZones.shanghai, returnsNormally);
+      expect(() => TimeZones.utc, returnsNormally);
     });
   });
 }

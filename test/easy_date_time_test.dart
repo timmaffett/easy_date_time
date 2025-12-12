@@ -98,6 +98,20 @@ void main() {
         expect(dt.day, 1);
       });
 
+      test('fromSecondsSinceEpoch() creates from seconds timestamp', () {
+        // 2025-01-01 00:00:00 UTC = 1735689600 seconds
+        final dt = EasyDateTime.fromSecondsSinceEpoch(
+          1735689600,
+          location: TimeZones.utc,
+        );
+        expect(dt.year, 2025);
+        expect(dt.month, 1);
+        expect(dt.day, 1);
+        expect(dt.hour, 0);
+        expect(dt.minute, 0);
+        expect(dt.second, 0);
+      });
+
       test('parse() parses ISO 8601 string', () {
         final dt = EasyDateTime.parse('2025-12-01T10:30:00Z');
 
@@ -175,6 +189,13 @@ void main() {
         final dt = EasyDateTime(2025, 12, 15, 0, 0, 0, 0, 0, tokyo);
         // Tokyo is UTC+9 (no DST)
         expect(dt.timeZoneOffset, const Duration(hours: 9));
+      });
+
+      test('timeZoneName returns valid name expression', () {
+        final dt = EasyDateTime.now(location: TimeZones.newYork);
+        // EST or EDT depending on time, but just checking it returns a string
+        expect(dt.timeZoneName, isNotEmpty);
+        expect(dt.timeZoneName, anyOf('EST', 'EDT', 'GMT-5', 'GMT-4'));
       });
     });
 
@@ -438,6 +459,134 @@ void main() {
         expect(nextSecond.year, 2026);
         expect(nextSecond.month, 1);
         expect(nextSecond.day, 1);
+      });
+    });
+    group('Constructors (migrated from additional_coverage)', () {
+      test('fromMicrosecondsSinceEpoch creates from microseconds timestamp',
+          () {
+        final timestamp = DateTime.utc(2025, 1, 1).microsecondsSinceEpoch;
+        final dt = EasyDateTime.fromMicrosecondsSinceEpoch(timestamp);
+
+        expect(dt.year, 2025);
+        expect(dt.month, 1);
+        expect(dt.day, 1);
+      });
+
+      test('fromMicrosecondsSinceEpoch with explicit location', () {
+        final timestamp =
+            DateTime.utc(2025, 6, 15, 12, 0).microsecondsSinceEpoch;
+        final tokyo = getLocation('Asia/Tokyo');
+        final dt = EasyDateTime.fromMicrosecondsSinceEpoch(
+          timestamp,
+          location: tokyo,
+        );
+
+        expect(dt.locationName, 'Asia/Tokyo');
+        expect(dt.hour, 21); // 12 UTC = 21 Tokyo
+      });
+    });
+
+    group('Conversion (migrated from additional_coverage)', () {
+      test('toLocal converts to system local timezone', () {
+        final utc = EasyDateTime.utc(2025, 12, 1, 12, 0);
+        final local = utc.toLocal();
+
+        // Same moment, but in local timezone
+        expect(local.millisecondsSinceEpoch, utc.millisecondsSinceEpoch);
+      });
+    });
+
+    group('Equality and HashCode (migrated from additional_coverage)', () {
+      test('hashCode is consistent', () {
+        final dt1 = EasyDateTime.utc(2025, 12, 1, 10, 30);
+        final dt2 = EasyDateTime.utc(2025, 12, 1, 10, 30);
+        expect(dt1.hashCode, dt2.hashCode);
+      });
+
+      test('different datetime has different hashCode', () {
+        final dt1 = EasyDateTime.utc(2025, 12, 1, 10, 30);
+        final dt2 = EasyDateTime.utc(2025, 12, 1, 10, 31);
+        expect(dt1.hashCode, isNot(dt2.hashCode));
+      });
+
+      test('same moment in different timezones has same hashCode', () {
+        // 10:30 Shanghai (+8) = 11:30 Tokyo (+9) = 02:30 UTC
+        final shanghai = EasyDateTime.parse('2025-12-01T10:30:00+08:00');
+        final tokyo = EasyDateTime.parse('2025-12-01T11:30:00+09:00');
+        expect(shanghai.hashCode, tokyo.hashCode);
+      });
+
+      test('equality (==) checks moment equality', () {
+        final dt1 = EasyDateTime.utc(2025, 12, 1, 10, 30);
+        final dt2 = EasyDateTime.utc(2025, 12, 1, 10, 30);
+        expect(dt1 == dt2, isTrue);
+      });
+
+      test('same moment in different timezones are equal', () {
+        final shanghai = EasyDateTime.parse('2025-12-01T10:30:00+08:00');
+        final tokyo = EasyDateTime.parse('2025-12-01T11:30:00+09:00');
+        expect(shanghai == tokyo, isTrue);
+      });
+
+      test('different moments are not equal', () {
+        final dt1 = EasyDateTime.utc(2025, 12, 1, 10, 30);
+        final dt2 = EasyDateTime.utc(2025, 12, 1, 10, 31);
+        expect(dt1 == dt2, isFalse);
+      });
+
+      test('equality is consistent with Set behavior', () {
+        final shanghai = EasyDateTime.parse('2025-12-01T10:30:00+08:00');
+        final tokyo = EasyDateTime.parse('2025-12-01T11:30:00+09:00');
+        final set = <EasyDateTime>{shanghai, tokyo};
+        expect(set.length, 1);
+      });
+    });
+
+    group('copyWithClamped', () {
+      test('clamps day to month end', () {
+        final jan31 = EasyDateTime.utc(2025, 1, 31);
+        final feb = jan31.copyWithClamped(month: 2);
+        expect(feb.day, 28);
+      });
+
+      test('clamps to leap year Feb 29', () {
+        final jan31 = EasyDateTime.utc(2024, 1, 31);
+        final feb = jan31.copyWithClamped(month: 2);
+        expect(feb.day, 29);
+      });
+
+      test('clamps to 30-day month', () {
+        final jan31 = EasyDateTime.utc(2025, 1, 31);
+        final apr = jan31.copyWithClamped(month: 4);
+        expect(apr.day, 30);
+      });
+
+      test('does not clamp valid days', () {
+        final jan15 = EasyDateTime.utc(2025, 1, 15);
+        final feb = jan15.copyWithClamped(month: 2);
+        expect(feb.day, 15);
+      });
+
+      test('preserves time components and location', () {
+        final tokyo = EasyDateTime(
+          2025,
+          1,
+          31,
+          10,
+          30,
+          45,
+          123,
+          456,
+          TimeZones.tokyo,
+        );
+        final feb = tokyo.copyWithClamped(month: 2);
+
+        expect(feb.locationName, 'Asia/Tokyo');
+        expect(feb.hour, 10);
+        expect(feb.minute, 30);
+        expect(feb.second, 45);
+        expect(feb.millisecond, 123);
+        expect(feb.microsecond, 456);
       });
     });
   });

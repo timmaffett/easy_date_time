@@ -348,13 +348,6 @@ abstract final class TimeZones {
       );
     }
 
-    try {
-      return getLocation(locationName);
-    } on LocationNotFoundException {
-      throw InvalidTimeZoneException(
-        timeZoneId: locationName,
-        message: 'Timezone "$locationName" not found in IANA database.',
-      );
-    }
+    return getLocation(locationName);
   }
 }

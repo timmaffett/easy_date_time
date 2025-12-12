@@ -24,8 +24,7 @@ void main() {
       final ny = getLocation('America/New_York');
       final gapTime = EasyDateTime(2025, 3, 9, 2, 30, 0, 0, 0, ny);
 
-      // Usually moves to 03:30 or throws. Let's see what happens.
-      // Standard timezone package behavior is usually to push forward.
+      // Verify strict hour containment or adjustment behavior
       expect(gapTime.hour, isNot(2), reason: 'Should not exist in hour 2');
 
       // New York Fall Back 2025: Nov 2, 02:00 -> 01:00
@@ -63,16 +62,16 @@ void main() {
 
     test('DoS Protection (Large Input)', () {
       final hugeString = '2025-01-01${' ' * 10000}';
-      // tryParse has length check for fallback, but what about ISO path?
-      // If valid ISO start, it might try.
+      // Validates that tryParse handles large inputs efficiently without hanging
       final start = DateTime.now();
       final result = EasyDateTime.tryParse(hugeString);
       final elapsed = DateTime.now().difference(start);
 
       expect(elapsed.inMilliseconds, lessThan(100),
           reason: 'Parsing huge string took too long');
+      // DateTime.parse handles trailing spaces, so result should be non-null
       expect(result, isNotNull,
-          reason: 'Wait, does DateTime.parse handle trailing spaces? Yes.');
+          reason: 'DateTime.parse handles trailing spaces');
     });
 
     test('Formatting Edge Cases', () {

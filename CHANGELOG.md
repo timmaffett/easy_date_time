@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.5] - 2025-12-13
+
+### ⚠️ Breaking Changes
+- **Removed Constants**: The following non-standard/ambiguous formats were removed:
+  - `DateTimeFormats.asianDate`
+  - `DateTimeFormats.usDate`
+  - `DateTimeFormats.euDate`
+  - `DateTimeFormats.fullDateTime`
+  - `DateTimeFormats.fullDateTime12Hour`
+  > **Migration**: Use `EasyDateTime.format()` with custom patterns if needed.
+
+### Added
+- **New Format Tokens**:
+  - `EEE` - Day of week (Mon, Tue...)
+  - `MMM` - Month name (Jan, Feb...)
+  - `xxxxx` - Timezone offset with colon (+08:00)
+  - `xxxx` - Timezone offset (+0800)
+  - `xx` - Timezone offset short (+08)
+  - `X` - ISO timezone (Z or +0800)
+
+### Fixed
+- **RFC 2822 Compliance**: `DateTimeFormats.rfc2822` now correctly outputs `Mon, 01 Dec 2025 14:30:45 +0800`.
+
 ## [0.3.4] - 2025-12-12
 
 ### Added
@@ -15,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Documentation
 - Added `EasyDateTimeFormatter` usage examples to READMEs.
+- Added `formatter_example.dart` to example README.
 
 ## [0.3.3] - 2025-12-11
 

@@ -256,6 +256,7 @@ dt.format(DateTimeFormats.rfc2822);      // 'Mon, 01 Dec 2025 14:30:45 +0800'
 | `ss`/`s` | Seconds (padded/unpadded) | 05, 5 |
 | `SSS` | Milliseconds | 123 |
 | `a` | AM/PM marker | AM, PM |
+| `xxxxx` | Timezone offset with colon | +08:00, -05:00 |
 | `xxxx` | Timezone offset | +0800, -0500 |
 | `xx` | Short timezone offset | +08, -05 |
 | `X` | Z for UTC, else offset | Z, +0800 |

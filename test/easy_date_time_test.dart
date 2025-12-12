@@ -98,6 +98,20 @@ void main() {
         expect(dt.day, 1);
       });
 
+      test('fromSecondsSinceEpoch() creates from seconds timestamp', () {
+        // 2025-01-01 00:00:00 UTC = 1735689600 seconds
+        final dt = EasyDateTime.fromSecondsSinceEpoch(
+          1735689600,
+          location: TimeZones.utc,
+        );
+        expect(dt.year, 2025);
+        expect(dt.month, 1);
+        expect(dt.day, 1);
+        expect(dt.hour, 0);
+        expect(dt.minute, 0);
+        expect(dt.second, 0);
+      });
+
       test('parse() parses ISO 8601 string', () {
         final dt = EasyDateTime.parse('2025-12-01T10:30:00Z');
 
@@ -175,6 +189,13 @@ void main() {
         final dt = EasyDateTime(2025, 12, 15, 0, 0, 0, 0, 0, tokyo);
         // Tokyo is UTC+9 (no DST)
         expect(dt.timeZoneOffset, const Duration(hours: 9));
+      });
+
+      test('timeZoneName returns valid name expression', () {
+        final dt = EasyDateTime.now(location: TimeZones.newYork);
+        // EST or EDT depending on time, but just checking it returns a string
+        expect(dt.timeZoneName, isNotEmpty);
+        expect(dt.timeZoneName, anyOf('EST', 'EDT', 'GMT-5', 'GMT-4'));
       });
     });
 

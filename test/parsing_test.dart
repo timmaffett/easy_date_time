@@ -176,6 +176,13 @@ void main() {
         final dt = EasyDateTime.parse('2025-12-01T10:00:00+09:30');
         expect(dt.hour, 10);
       });
+
+      test('parses -03:30 offset (St. Johns) triggers fallback lookup', () {
+        // -03:30 is not in _commonOffsetMappings, so this hits the fallback loop
+        final dt = EasyDateTime.parse('2025-12-01T10:00:00-03:30');
+        expect(dt.hour, 10);
+        expect(dt.locationName, 'America/St_Johns');
+      });
     });
   });
 }

@@ -119,9 +119,10 @@ void main() {
 
     test('handles default token branch for unknown tokens', () {
       // Single characters that are not tokens should pass through
-      final formatter = EasyDateTimeFormatter('XYZ');
+      // Note: X is a token (timezone), so we use other letters
+      final formatter = EasyDateTimeFormatter('QWZ');
       final dt = EasyDateTime(2025, 1, 1);
-      expect(formatter.format(dt), 'XYZ');
+      expect(formatter.format(dt), 'QWZ');
     });
   });
 }

@@ -193,7 +193,13 @@ class EasyDateTime implements Comparable<EasyDateTime> {
     bool isUtc = false,
   }) {
     if(isUtc) {
-      assert(location==null, 'Cannot specify both isUtc and location.');
+      if (location != null) {
+        throw ArgumentError.value(
+          location,
+          'location',
+          'Cannot specify location when isUtc is true',
+        );
+      }
       return EasyDateTime._(
         TZDateTime.fromMillisecondsSinceEpoch(
           getLocation('UTC'),

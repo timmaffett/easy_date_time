@@ -98,6 +98,48 @@ void main() {
         expect(dt.day, 1);
       });
 
+      test('fromMillisecondsSinceEpoch() with isUtc=true returns UTC', () {
+        final timestamp =
+            DateTime.utc(2025, 6, 15, 12, 0).millisecondsSinceEpoch;
+        final dt = EasyDateTime.fromMillisecondsSinceEpoch(
+          timestamp,
+          isUtc: true,
+        );
+
+        expect(dt.locationName, 'UTC');
+        expect(dt.year, 2025);
+        expect(dt.month, 6);
+        expect(dt.day, 15);
+        expect(dt.hour, 12);
+      });
+
+      test('fromMillisecondsSinceEpoch() with explicit location', () {
+        final timestamp =
+            DateTime.utc(2025, 6, 15, 12, 0).millisecondsSinceEpoch;
+        final tokyo = getLocation('Asia/Tokyo');
+        final dt = EasyDateTime.fromMillisecondsSinceEpoch(
+          timestamp,
+          location: tokyo,
+        );
+
+        expect(dt.locationName, 'Asia/Tokyo');
+        // UTC 12:00 = Tokyo 21:00 (UTC+9)
+        expect(dt.hour, 21);
+      });
+
+      test(
+          'fromMillisecondsSinceEpoch() throws when isUtc and location both set',
+          () {
+        expect(
+          () => EasyDateTime.fromMillisecondsSinceEpoch(
+            1000,
+            isUtc: true,
+            location: TimeZones.tokyo,
+          ),
+          throwsArgumentError,
+        );
+      });
+
       test('fromSecondsSinceEpoch() creates from seconds timestamp', () {
         // 2025-01-01 00:00:00 UTC = 1735689600 seconds
         final dt = EasyDateTime.fromSecondsSinceEpoch(

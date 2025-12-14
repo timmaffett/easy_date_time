@@ -184,15 +184,40 @@ class EasyDateTime implements Comparable<EasyDateTime> {
 
   /// Creates an [EasyDateTime] from milliseconds since Unix epoch.
   ///
-  /// If [location] is not provided, uses the global default or local timezone.
-  /// If [isUtc] is true it uses UTC timezone. [location] MUST BE null if isUtc is true.
-  ///    (This is provided for compatibility with DateTime constructor)
+  /// The [milliseconds] value is interpreted as the number of milliseconds
+  /// since January 1, 1970 00:00:00 UTC (Unix epoch).
+  ///
+  /// ## Parameters
+  ///
+  /// - [location]: The timezone to display the result in. If not provided,
+  ///   uses the global default (set via [setDefaultLocation]) or local timezone.
+  /// - [isUtc]: If `true`, returns a UTC datetime. This is provided for
+  ///   compatibility with [DateTime.fromMillisecondsSinceEpoch].
+  ///
+  /// **Note**: [isUtc] and [location] are mutually exclusive. Specifying both
+  /// throws an [ArgumentError].
+  ///
+  /// ## Examples
+  ///
+  /// ```dart
+  /// // Basic usage (uses default/local timezone)
+  /// final dt = EasyDateTime.fromMillisecondsSinceEpoch(1735689600000);
+  ///
+  /// // With explicit UTC (DateTime compatible)
+  /// final utc = EasyDateTime.fromMillisecondsSinceEpoch(ms, isUtc: true);
+  ///
+  /// // With explicit timezone
+  /// final tokyo = EasyDateTime.fromMillisecondsSinceEpoch(
+  ///   ms,
+  ///   location: TimeZones.tokyo,
+  /// );
+  /// ```
   factory EasyDateTime.fromMillisecondsSinceEpoch(
     int milliseconds, {
     Location? location,
     bool isUtc = false,
   }) {
-    if(isUtc) {
+    if (isUtc) {
       if (location != null) {
         throw ArgumentError.value(
           location,
@@ -200,6 +225,7 @@ class EasyDateTime implements Comparable<EasyDateTime> {
           'Cannot specify location when isUtc is true',
         );
       }
+
       return EasyDateTime._(
         TZDateTime.fromMillisecondsSinceEpoch(
           getLocation('UTC'),
@@ -207,6 +233,7 @@ class EasyDateTime implements Comparable<EasyDateTime> {
         ),
       );
     }
+
     return EasyDateTime._(
       TZDateTime.fromMillisecondsSinceEpoch(
         location ?? config.effectiveDefaultLocation,

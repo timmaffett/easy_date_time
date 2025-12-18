@@ -280,7 +280,7 @@ extension EasyDateTimeFormatting on EasyDateTime {
       final token = _matchToken(pattern, i);
 
       if (token != null) {
-        buffer.write(_formatToken(token));
+        buffer.write(_formatTokenValue(token, this));
         i += token.length;
       } else {
         // No token matched, write character as-is
@@ -304,9 +304,6 @@ extension EasyDateTimeFormatting on EasyDateTime {
 
     return null;
   }
-
-  /// Formats a single token to its string value.
-  String _formatToken(String token) => _formatTokenValue(token, this);
 }
 
 /// A pre-compiled date formatter for high-performance scenarios.

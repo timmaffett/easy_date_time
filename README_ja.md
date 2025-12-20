@@ -75,7 +75,7 @@ dt.format('yyyy-MM-dd'); // -> 2025-12-07
 
 ```yaml
 dependencies:
-  easy_date_time: ^0.3.8
+  easy_date_time: ^0.4.0
 ```
 
 **注意**: 正確な計算を行うため、アプリ起動時に**必ず**タイムゾーンデータベースの初期化を行ってください。
@@ -191,6 +191,39 @@ jan31.copyWith(month: 2);        // ⚠️ 3月3日 (通常のオーバーフロ
 jan31.copyWithClamped(month: 2); // ✅ 2月28日 (月末にクランプ)
 ```
 
+### 時間単位の境界
+
+日時を指定した時間単位の境界に切り詰めます：
+
+```dart
+final dt = EasyDateTime(2025, 6, 15, 14, 30, 45);
+
+dt.startOf(DateTimeUnit.day);   // 2025-06-15 00:00:00
+dt.startOf(DateTimeUnit.month); // 2025-06-01 00:00:00
+
+dt.endOf(DateTimeUnit.day);     // 2025-06-15 23:59:59.999999
+dt.endOf(DateTimeUnit.month);   // 2025-06-30 23:59:59.999999
+```
+
+---
+
+## intl との連携
+
+ロケール対応フォーマット（例: "January" → "1月"）には `intl` パッケージと組み合わせて使用します：
+
+```dart
+import 'package:intl/intl.dart';
+import 'package:easy_date_time/easy_date_time.dart';
+
+final dt = EasyDateTime.now(location: TimeZones.tokyo);
+
+// intl でロケール対応フォーマット
+DateFormat.yMMMMd('ja').format(dt);  // '2025年12月20日'
+DateFormat.yMMMMd('en').format(dt);  // 'December 20, 2025'
+```
+
+> **注**: `EasyDateTime` は `DateTime` インターフェースを実装しているため、`DateFormat.format()` で直接使用可能。
+
 ---
 
 ## 日時フォーマット
@@ -279,11 +312,32 @@ class EasyDateTimeConverter implements JsonConverter<EasyDateTime, String> {
 
 ## 注意事項
 
-* `==` 演算子は、タイムゾーンに関わらず**絶対時間（Instant）**の等価性を判定します。
+### 等価性の比較
+
+`EasyDateTime` は Dart の `DateTime` と同じ等価性セマンティクスに従います：
+
+```dart
+final utc = EasyDateTime.utc(2025, 1, 1, 0, 0);
+final local = EasyDateTime.parse('2025-01-01T08:00:00+08:00');
+
+// 同じ瞬間、異なるタイムゾーンタイプ（UTC vs 非 UTC）
+utc == local;                  // false
+utc.isAtSameMomentAs(local);   // true
+```
+
+| メソッド | 比較対象 | 使用場面 |
+|----------|----------|----------|
+| `==` | 瞬間 + タイムゾーンタイプ（UTC/非 UTC） | 完全一致 |
+| `isAtSameMomentAs()` | 絶対時間のみ | タイムゾーン間比較 |
+| `isBefore()` / `isAfter()` | 時系列順序 | ソート、範囲チェック |
+
+### その他の注意点
+
 * 有効な IANA タイムゾーンオフセットのみがサポートされます。非標準のオフセットはエラーとなります。
 * 使用前に `EasyDateTime.initializeTimeZone()` の呼び出しが必要です。
 
 ### 安全な解析
+
 ユーザー入力を解析する場合は、`tryParse` の使用を推奨します。
 
 ```dart

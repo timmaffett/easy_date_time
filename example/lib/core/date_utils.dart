@@ -59,6 +59,17 @@ void main() {
   print('');
 
   // --------------------------------------------------------
+  // startOf / endOf (with DateTimeUnit)
+  // --------------------------------------------------------
+  print('startOf / endOf (with DateTimeUnit):');
+  final sample = EasyDateTime(2025, 6, 15, 14, 30, 45);
+  print('  Original: $sample');
+  print('  startOf(day):   ${sample.startOf(DateTimeUnit.day)}');
+  print('  endOf(month):   ${sample.endOf(DateTimeUnit.month)}');
+  print('  startOf(year):  ${sample.startOf(DateTimeUnit.year)}');
+  print('');
+
+  // --------------------------------------------------------
   // Practical: Date range check
   // --------------------------------------------------------
   print('Practical: Date range check');

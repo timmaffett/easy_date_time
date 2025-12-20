@@ -684,6 +684,10 @@ class EasyDateTime implements Comparable<EasyDateTime> {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
 
+    if (other is DateTime) {
+      return microsecondsSinceEpoch == other.microsecondsSinceEpoch;
+    }
+
     return other is EasyDateTime &&
         microsecondsSinceEpoch == other.microsecondsSinceEpoch;
   }

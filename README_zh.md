@@ -75,7 +75,7 @@ dt.format('yyyy-MM-dd'); // -> 2025-12-07
 
 ```yaml
 dependencies:
-  easy_date_time: ^0.3.8
+  easy_date_time: ^0.4.0
 ```
 
 **注意**：为了确保时区计算准确，**必须**在应用启动前初始化时区数据库：
@@ -187,6 +187,39 @@ jan31.copyWith(month: 2);        // ⚠️ 3月3日 (常规溢出)
 jan31.copyWithClamped(month: 2); // ✅ 2月28日 (自动修正为当月最后一天)
 ```
 
+### 时间单位边界
+
+截取或扩展到时间单位的边界：
+
+```dart
+final dt = EasyDateTime(2025, 6, 15, 14, 30, 45);
+
+dt.startOf(DateTimeUnit.day);   // 2025-06-15 00:00:00
+dt.startOf(DateTimeUnit.month); // 2025-06-01 00:00:00
+
+dt.endOf(DateTimeUnit.day);     // 2025-06-15 23:59:59.999999
+dt.endOf(DateTimeUnit.month);   // 2025-06-30 23:59:59.999999
+```
+
+---
+
+## 与 intl 集成
+
+如需本地化格式（如 "January" → "一月"），可配合 `intl` 使用：
+
+```dart
+import 'package:intl/intl.dart';
+import 'package:easy_date_time/easy_date_time.dart';
+
+final dt = EasyDateTime.now(location: TimeZones.tokyo);
+
+// 通过 intl 进行本地化格式化
+DateFormat.yMMMMd('zh').format(dt);  // '2025年12月20日'
+DateFormat.yMMMMd('en').format(dt);  // 'December 20, 2025'
+```
+
+> **说明**: `EasyDateTime` 实现了 `DateTime` 接口，可直接用于 `DateFormat.format()`。
+
 ---
 
 ## 日期格式化
@@ -275,11 +308,32 @@ class EasyDateTimeConverter implements JsonConverter<EasyDateTime, String> {
 
 ## 注意事项
 
-* `==` 运算符比较的是**绝对时间戳**是否相等，而非原始数值。
+### 相等性比较
+
+`EasyDateTime` 遵循 Dart `DateTime` 的相等性语义：
+
+```dart
+final utc = EasyDateTime.utc(2025, 1, 1, 0, 0);
+final local = EasyDateTime.parse('2025-01-01T08:00:00+08:00');
+
+// 同一时刻，不同时区类型（UTC vs 非 UTC）
+utc == local;                  // false
+utc.isAtSameMomentAs(local);   // true
+```
+
+| 方法 | 比较内容 | 使用场景 |
+|------|----------|----------|
+| `==` | 时刻 + 时区类型（UTC/非 UTC） | 完全相等 |
+| `isAtSameMomentAs()` | 仅绝对时刻 | 跨时区比较 |
+| `isBefore()` / `isAfter()` | 时间顺序 | 排序、范围检查 |
+
+### 其他说明
+
 * 只有有效的 IANA 时区偏移才能被正确解析，非标准偏移将抛出异常。
 * 请务必调用 `EasyDateTime.initializeTimeZone()` 进行初始化。
 
 ### 安全解析
+
 对于不确定的用户输入，建议使用 `tryParse`：
 
 ```dart

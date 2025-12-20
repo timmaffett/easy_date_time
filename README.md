@@ -75,7 +75,7 @@ Add the following to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  easy_date_time: ^0.3.8
+  easy_date_time: ^0.4.0
 ```
 
 **Note**: You **must** initialize the timezone database before using the library.
@@ -205,6 +205,21 @@ jan31.copyWith(month: 2);        // ⚠️ Mar 3rd (Standard overflow)
 jan31.copyWithClamped(month: 2); // ✅ Feb 28 (Clamped to last valid day)
 ```
 
+### Start and End of Time Units
+
+Truncate or extend a datetime to the boundary of a time unit:
+
+```dart
+final dt = EasyDateTime(2025, 6, 15, 14, 30, 45);
+
+dt.startOf(DateTimeUnit.day);   // 2025-06-15 00:00:00
+dt.startOf(DateTimeUnit.month); // 2025-06-01 00:00:00
+dt.startOf(DateTimeUnit.year);  // 2025-01-01 00:00:00
+
+dt.endOf(DateTimeUnit.day);     // 2025-06-15 23:59:59.999999
+dt.endOf(DateTimeUnit.month);   // 2025-06-30 23:59:59.999999
+```
+
 ---
 
 ## Date Formatting
@@ -273,6 +288,25 @@ import 'package:easy_date_time/easy_date_time.dart' hide DurationExtension;
 
 ---
 
+## Integration with intl
+
+For locale-aware formatting (e.g., "January" → "一月"), use `EasyDateTime` with the `intl` package:
+
+```dart
+import 'package:intl/intl.dart';
+import 'package:easy_date_time/easy_date_time.dart';
+
+final dt = EasyDateTime.now(location: TimeZones.tokyo);
+
+// Locale-aware formatting via intl
+DateFormat.yMMMMd('ja').format(dt);  // '2025年12月20日'
+DateFormat.yMMMMd('en').format(dt);  // 'December 20, 2025'
+```
+
+> **Note**: `EasyDateTime` implements `DateTime`, so it works directly with `DateFormat.format()`.
+
+---
+
 ## JSON & Serialization
 
 Compatible with `json_serializable` and `freezed` via a custom converter:
@@ -293,7 +327,27 @@ class EasyDateTimeConverter implements JsonConverter<EasyDateTime, String> {
 
 ## Important Notes
 
-* `==` calculates equality based on the **absolute instant**, ignoring timezone differences.
+### Equality Comparison
+
+`EasyDateTime` follows Dart's `DateTime` semantics for equality:
+
+```dart
+final utc = EasyDateTime.utc(2025, 1, 1, 0, 0);
+final local = EasyDateTime.parse('2025-01-01T08:00:00+08:00');
+
+// Same moment, different timezone type (UTC vs non-UTC)
+utc == local;                  // false
+utc.isAtSameMomentAs(local);   // true
+```
+
+| Method | Compares | Use Case |
+|--------|----------|----------|
+| `==` | Moment + timezone type (UTC/non-UTC) | Exact equality |
+| `isAtSameMomentAs()` | Absolute instant only | Cross-timezone comparison |
+| `isBefore()` / `isAfter()` | Chronological order | Sorting, range checks |
+
+### Other Notes
+
 * Only valid IANA timezone offsets are supported; non-standard offsets will throw an error.
 * `EasyDateTime.initializeTimeZone()` must be called before use.
 

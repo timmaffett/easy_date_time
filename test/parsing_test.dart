@@ -173,8 +173,12 @@ void main() {
       });
 
       test('parses +09:30 offset as Adelaide', () {
+        // Adelaide is +10:30 in December (DST).
+        // Input: 10:00+09:30 -> 00:30 UTC.
+        // 00:30 UTC in Adelaide (+10:30) is 11:00.
         final dt = EasyDateTime.parse('2025-12-01T10:00:00+09:30');
-        expect(dt.hour, 10);
+        expect(dt.hour, 11);
+        expect(dt.locationName, 'Australia/Adelaide');
       });
 
       test('parses -03:30 offset (St. Johns) triggers fallback lookup', () {
@@ -182,6 +186,44 @@ void main() {
         final dt = EasyDateTime.parse('2025-12-01T10:00:00-03:30');
         expect(dt.hour, 10);
         expect(dt.locationName, 'America/St_Johns');
+      });
+    });
+
+    group('DST Edge Cases', () {
+      test('parses DST gap correctly (Spring Forward)', () {
+        // 2023-03-12 02:30:00-04:00 is 06:30 UTC.
+        // In NY, 02:00 -> 03:00. So 02:30 doesn't exist.
+        // 06:30 UTC is 01:30 EST (-5) in NY.
+        final dt = EasyDateTime.parse('2023-03-12T02:30:00-04:00');
+        expect(dt.toUtc().hour, 6);
+        expect(dt.toUtc().minute, 30);
+        expect(dt.hour, 1); // 01:30 EST
+        expect(dt.minute, 30);
+        expect(dt.timeZoneOffset.inHours, -5);
+      });
+
+      test('parses DST overlap correctly (Fall Back - First Occurrence)', () {
+        // 2023-11-05 01:30:00-04:00 is 05:30 UTC.
+        // In NY, 01:30 happens twice. First is EDT (-4).
+        // 05:30 UTC is 01:30 EDT.
+        final dt = EasyDateTime.parse('2023-11-05T01:30:00-04:00');
+        expect(dt.toUtc().hour, 5);
+        expect(dt.toUtc().minute, 30);
+        expect(dt.hour, 1);
+        expect(dt.minute, 30);
+        expect(dt.timeZoneOffset.inHours, -4);
+      });
+
+      test('parses DST overlap correctly (Fall Back - Second Occurrence)', () {
+        // 2023-11-05 01:30:00-05:00 is 06:30 UTC.
+        // In NY, 01:30 happens twice. Second is EST (-5).
+        // 06:30 UTC is 01:30 EST.
+        final dt = EasyDateTime.parse('2023-11-05T01:30:00-05:00');
+        expect(dt.toUtc().hour, 6);
+        expect(dt.toUtc().minute, 30);
+        expect(dt.hour, 1);
+        expect(dt.minute, 30);
+        expect(dt.timeZoneOffset.inHours, -5);
       });
     });
   });

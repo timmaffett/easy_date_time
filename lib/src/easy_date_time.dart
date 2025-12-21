@@ -361,35 +361,24 @@ class EasyDateTime implements Comparable<EasyDateTime> {
       final offsetInfo = _extractTimezoneOffset(trimmed);
 
       if (offsetInfo != null) {
-        // String has explicit offset - preserve original time values
-        final originalTime = _extractOriginalTimeComponents(trimmed);
-        if (originalTime != null) {
-          // Find matching IANA timezone for this offset
-          final matchingLocation = _findLocationForOffset(offsetInfo);
+        // Find matching IANA timezone for this offset
+        final matchingLocation = _findLocationForOffset(offsetInfo);
 
-          if (matchingLocation != null) {
-            return EasyDateTime._(TZDateTime(
-              matchingLocation,
-              originalTime.year,
-              originalTime.month,
-              originalTime.day,
-              originalTime.hour,
-              originalTime.minute,
-              originalTime.second,
-              originalTime.millisecond,
-              originalTime.microsecond,
-            ));
-          }
-
-          // No matching timezone found - throw exception
-          // This indicates invalid or corrupted data with a non-standard offset
-          final offsetStr = _formatOffset(offsetInfo);
-          throw InvalidTimeZoneException(
-            timeZoneId: offsetStr,
-            message: 'No IANA timezone found for offset $offsetStr. '
-                'Valid timezone offsets are defined in the IANA database.',
-          );
+        if (matchingLocation != null) {
+          // Use the parsed DateTime to ensure the instant is preserved correctly,
+          // even if the wall clock time needs to be adjusted for the location
+          // (e.g. during DST transitions).
+          return EasyDateTime._(TZDateTime.from(dt, matchingLocation));
         }
+
+        // No matching timezone found - throw exception
+        // This indicates invalid or corrupted data with a non-standard offset
+        final offsetStr = _formatOffset(offsetInfo);
+        throw InvalidTimeZoneException(
+          timeZoneId: offsetStr,
+          message: 'No IANA timezone found for offset $offsetStr. '
+              'Valid timezone offsets are defined in the IANA database.',
+        );
       }
 
       // UTC indicator (Z)

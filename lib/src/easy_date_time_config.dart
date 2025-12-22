@@ -5,49 +5,6 @@ import 'exceptions/exceptions.dart';
 
 Location? _globalDefaultLocation;
 
-/// Sets the global default timezone for all [EasyDateTime] operations.
-///
-/// **Deprecated**: Use [EasyDateTime.setDefaultLocation] instead.
-///
-/// This is **optional**. If not set, [EasyDateTime] uses the system's
-/// local timezone.
-///
-/// ```dart
-/// EasyDateTime.setDefaultLocation(TimeZones.shanghai);
-/// final now = EasyDateTime.now(); // Shanghai time
-/// ```
-@Deprecated(
-  'Use EasyDateTime.setDefaultLocation() instead. '
-  'This function will be removed in v0.4.0.',
-)
-void setDefaultLocation(Location? location) {
-  _globalDefaultLocation = location;
-}
-
-/// Gets the current global default timezone.
-///
-/// **Deprecated**: Use [EasyDateTime.getDefaultLocation] instead.
-///
-/// Returns `null` if no default has been set.
-@Deprecated(
-  'Use EasyDateTime.getDefaultLocation() instead. '
-  'This function will be removed in v0.4.0.',
-)
-Location? getDefaultLocation() => _globalDefaultLocation;
-
-/// Clears the global default timezone.
-///
-/// **Deprecated**: Use [EasyDateTime.clearDefaultLocation] instead.
-///
-/// After calling this, [EasyDateTime] will use the system's local timezone.
-@Deprecated(
-  'Use EasyDateTime.clearDefaultLocation() instead. '
-  'This function will be removed in v0.4.0.',
-)
-void clearDefaultLocation() {
-  _globalDefaultLocation = null;
-}
-
 /// Gets the effective default location for EasyDateTime operations.
 ///
 /// Priority:

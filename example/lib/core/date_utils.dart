@@ -3,7 +3,7 @@
 /// Date Utilities Example
 ///
 /// Demonstrates: isToday, startOfDay, endOfMonth, etc.
-/// Run: dart run example/06_date_utils.dart
+/// Run: dart run example/lib/core/date_utils.dart
 library;
 
 import 'package:easy_date_time/easy_date_time.dart';
@@ -56,6 +56,17 @@ void main() {
   final withTime = EasyDateTime(2025, 12, 7, 15, 30, 45);
   print('  Original: $withTime');
   print('  dateOnly: ${withTime.dateOnly}');
+  print('');
+
+  // --------------------------------------------------------
+  // startOf / endOf (with DateTimeUnit)
+  // --------------------------------------------------------
+  print('startOf / endOf (with DateTimeUnit):');
+  final sample = EasyDateTime(2025, 6, 15, 14, 30, 45);
+  print('  Original: $sample');
+  print('  startOf(day):   ${sample.startOf(DateTimeUnit.day)}');
+  print('  endOf(month):   ${sample.endOf(DateTimeUnit.month)}');
+  print('  startOf(year):  ${sample.startOf(DateTimeUnit.year)}');
   print('');
 
   // --------------------------------------------------------

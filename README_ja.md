@@ -91,10 +91,6 @@ void main() {
 }
 ```
 
-> [!NOTE]
-> グローバル関数 `initializeTimeZone()` と `setDefaultLocation()` は**非推奨**です。
-> 代わりに `EasyDateTime.initializeTimeZone()` と `EasyDateTime.setDefaultLocation()` を使用してください。
-
 ---
 
 ## クイックスタート

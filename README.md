@@ -91,10 +91,6 @@ void main() {
 }
 ```
 
-> [!NOTE]
-> Global functions like `initializeTimeZone()` and `setDefaultLocation()` are **deprecated**.
-> Use the static methods `EasyDateTime.initializeTimeZone()` and `EasyDateTime.setDefaultLocation()` instead.
-
 ---
 
 ## Quick Start

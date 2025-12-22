@@ -91,10 +91,6 @@ void main() {
 }
 ```
 
-> [!NOTE]
-> 全局函数 `initializeTimeZone()` 和 `setDefaultLocation()` 已**废弃**。
-> 请改用 `EasyDateTime.initializeTimeZone()` 和 `EasyDateTime.setDefaultLocation()`。
-
 ---
 
 ## 快速开始

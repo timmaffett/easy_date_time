@@ -69,6 +69,17 @@ void main() {
         expect(dt.locationName, 'UTC');
       });
 
+      test('timestamp() returns current UTC time', () {
+        final before = DateTime.now().toUtc().millisecondsSinceEpoch;
+        final dt = EasyDateTime.timestamp();
+        final after = DateTime.now().toUtc().millisecondsSinceEpoch;
+
+        expect(dt.locationName, 'UTC');
+        expect(dt.timeZoneOffset, Duration.zero);
+        expect(dt.millisecondsSinceEpoch, greaterThanOrEqualTo(before));
+        expect(dt.millisecondsSinceEpoch, lessThanOrEqualTo(after));
+      });
+
       test('fromDateTime() converts DateTime to default timezone', () {
         final utcDt = DateTime.utc(2025, 12, 1, 0, 0);
         final easyDt = EasyDateTime.fromDateTime(utcDt);
@@ -360,14 +371,14 @@ void main() {
         expect(dt1 == dt2, true);
       });
 
-      test('== returns true for same moment in different timezones', () {
+      test('== returns false for same moment in different timezones', () {
         final dt1 = EasyDateTime.utc(2025, 12, 1, 9, 0);
         final tokyo = getLocation('Asia/Tokyo');
         final dt2 = EasyDateTime(2025, 12, 1, 18, 0, 0, 0, 0, tokyo);
 
-        // Same moment in time, different timezone - should be equal
+        // Same moment in time, but different timezone - not equal (DateTime-compatible)
         expect(dt1.isAtSameMomentAs(dt2), true);
-        expect(dt1 == dt2, true);
+        expect(dt1 == dt2, false);
       });
     });
 
@@ -503,7 +514,8 @@ void main() {
         expect(nextSecond.day, 1);
       });
     });
-    group('Constructors (migrated from additional_coverage)', () {
+
+    group('Constructors', () {
       test('fromMicrosecondsSinceEpoch creates from microseconds timestamp',
           () {
         final timestamp = DateTime.utc(2025, 1, 1).microsecondsSinceEpoch;
@@ -526,9 +538,62 @@ void main() {
         expect(dt.locationName, 'Asia/Tokyo');
         expect(dt.hour, 21); // 12 UTC = 21 Tokyo
       });
+
+      test('fromMicrosecondsSinceEpoch() with isUtc=true returns UTC', () {
+        final timestamp =
+            DateTime.utc(2025, 6, 15, 12, 0).microsecondsSinceEpoch;
+        final dt = EasyDateTime.fromMicrosecondsSinceEpoch(
+          timestamp,
+          isUtc: true,
+        );
+
+        expect(dt.locationName, 'UTC');
+        expect(dt.year, 2025);
+        expect(dt.month, 6);
+        expect(dt.day, 15);
+        expect(dt.hour, 12);
+      });
+
+      test(
+          'fromMicrosecondsSinceEpoch() throws when isUtc and location both set',
+          () {
+        expect(
+          () => EasyDateTime.fromMicrosecondsSinceEpoch(
+            1000,
+            isUtc: true,
+            location: TimeZones.tokyo,
+          ),
+          throwsArgumentError,
+        );
+      });
+
+      test('fromSecondsSinceEpoch() with isUtc=true returns UTC', () {
+        // 2025-06-15 12:00:00 UTC
+        final seconds =
+            DateTime.utc(2025, 6, 15, 12, 0).millisecondsSinceEpoch ~/ 1000;
+        final dt = EasyDateTime.fromSecondsSinceEpoch(seconds, isUtc: true);
+
+        expect(dt.locationName, 'UTC');
+        expect(dt.year, 2025);
+        expect(dt.month, 6);
+        expect(dt.day, 15);
+        expect(dt.hour, 12);
+      });
+
+      test('fromSecondsSinceEpoch() throws when isUtc and location both set',
+          () {
+        expect(
+          () => EasyDateTime.fromSecondsSinceEpoch(
+            1000,
+            isUtc: true,
+            location: TimeZones.tokyo,
+          ),
+          throwsArgumentError,
+        );
+      });
     });
 
-    group('Conversion (migrated from additional_coverage)', () {
+    group('Conversion', () {
       test('toLocal converts to system local timezone', () {
         final utc = EasyDateTime.utc(2025, 12, 1, 12, 0);
         final local = utc.toLocal();
@@ -538,7 +603,7 @@ void main() {
       });
     });
 
-    group('Equality and HashCode (migrated from additional_coverage)', () {
+    group('Equality and HashCode', () {
       test('hashCode is consistent', () {
         final dt1 = EasyDateTime.utc(2025, 12, 1, 10, 30);
         final dt2 = EasyDateTime.utc(2025, 12, 1, 10, 30);
@@ -551,10 +616,20 @@ void main() {
         expect(dt1.hashCode, isNot(dt2.hashCode));
       });
 
-      test('same moment in different timezones has same hashCode', () {
-        // 10:30 Shanghai (+8) = 11:30 Tokyo (+9) = 02:30 UTC
+      test('UTC and non-UTC have different hashCode even for same moment', () {
+        // Same moment: UTC 02:30 = Shanghai 10:30 (+8)
+        final utc = EasyDateTime.utc(2025, 12, 1, 2, 30);
+        final shanghai = EasyDateTime.parse('2025-12-01T10:30:00+08:00');
+        // Same moment but different isUtc -> different hashCode
+        expect(utc.isAtSameMomentAs(shanghai), isTrue);
+        expect(utc.hashCode, isNot(shanghai.hashCode));
+      });
+
+      test('same moment in same isUtc has same hashCode', () {
+        // 10:30 Shanghai (+8) = 11:30 Tokyo (+9), both non-UTC
         final shanghai = EasyDateTime.parse('2025-12-01T10:30:00+08:00');
         final tokyo = EasyDateTime.parse('2025-12-01T11:30:00+09:00');
+        // Same moment, both non-UTC -> same hashCode
         expect(shanghai.hashCode, tokyo.hashCode);
       });
 
@@ -564,9 +639,20 @@ void main() {
         expect(dt1 == dt2, isTrue);
       });
 
-      test('same moment in different timezones are equal', () {
+      test('UTC vs non-UTC are NOT equal even for same moment', () {
+        final utc = EasyDateTime.utc(2025, 12, 1, 2, 30);
+        final shanghai = EasyDateTime.parse('2025-12-01T10:30:00+08:00');
+        // Same moment but different isUtc -> not equal
+        expect(utc.isAtSameMomentAs(shanghai), isTrue);
+        expect(utc == shanghai, isFalse);
+      });
+
+      test('same moment with same isUtc are equal', () {
+        // 10:30 Shanghai (+8) = 11:30 Tokyo (+9), both non-UTC = same isUtc
         final shanghai = EasyDateTime.parse('2025-12-01T10:30:00+08:00');
         final tokyo = EasyDateTime.parse('2025-12-01T11:30:00+09:00');
+        // Same moment, both non-UTC -> equal (DateTime-compatible)
+        expect(shanghai.isAtSameMomentAs(tokyo), isTrue);
         expect(shanghai == tokyo, isTrue);
       });
 
@@ -576,10 +662,19 @@ void main() {
         expect(dt1 == dt2, isFalse);
       });
 
-      test('equality is consistent with Set behavior', () {
+      test('stores UTC and non-UTC as distinct entries in Set', () {
+        final utc = EasyDateTime.utc(2025, 12, 1, 2, 30);
+        final shanghai = EasyDateTime.parse('2025-12-01T10:30:00+08:00');
+        final set = <EasyDateTime>{utc, shanghai};
+        // Same moment but different isUtc -> separate entries
+        expect(set.length, 2);
+      });
+
+      test('deduplicates same moment with same isUtc in Set', () {
         final shanghai = EasyDateTime.parse('2025-12-01T10:30:00+08:00');
         final tokyo = EasyDateTime.parse('2025-12-01T11:30:00+09:00');
         final set = <EasyDateTime>{shanghai, tokyo};
+        // Same moment, both non-UTC -> deduplicated to 1
         expect(set.length, 1);
       });
     });
@@ -629,6 +724,206 @@ void main() {
         expect(feb.second, 45);
         expect(feb.millisecond, 123);
         expect(feb.microsecond, 456);
+      });
+    });
+
+    group('startOf', () {
+      test('startOf(year) returns first moment of year', () {
+        final dt = EasyDateTime.utc(2025, 6, 15, 14, 30, 45, 123, 456);
+        final start = dt.startOf(DateTimeUnit.year);
+        expect(start.year, 2025);
+        expect(start.month, 1);
+        expect(start.day, 1);
+        expect(start.hour, 0);
+        expect(start.minute, 0);
+        expect(start.second, 0);
+        expect(start.millisecond, 0);
+        expect(start.microsecond, 0);
+      });
+
+      test('startOf(month) returns first moment of month', () {
+        final dt = EasyDateTime.utc(2025, 6, 15, 14, 30, 45);
+        final start = dt.startOf(DateTimeUnit.month);
+        expect(start.month, 6);
+        expect(start.day, 1);
+        expect(start.hour, 0);
+      });
+
+      test('startOf(day) returns midnight', () {
+        final dt = EasyDateTime.utc(2025, 6, 15, 14, 30, 45);
+        final start = dt.startOf(DateTimeUnit.day);
+        expect(start.day, 15);
+        expect(start.hour, 0);
+        expect(start.minute, 0);
+      });
+
+      test('startOf(hour) truncates to start of current hour', () {
+        final dt = EasyDateTime.utc(2025, 6, 15, 14, 30, 45, 123, 456);
+        final start = dt.startOf(DateTimeUnit.hour);
+        expect(start.hour, 14);
+        expect(start.minute, 0);
+        expect(start.second, 0);
+        expect(start.millisecond, 0);
+        expect(start.microsecond, 0);
+      });
+
+      test('startOf(minute) truncates to start of current minute', () {
+        final dt = EasyDateTime.utc(2025, 6, 15, 14, 30, 45, 123, 456);
+        final start = dt.startOf(DateTimeUnit.minute);
+        expect(start.minute, 30);
+        expect(start.second, 0);
+        expect(start.millisecond, 0);
+        expect(start.microsecond, 0);
+      });
+
+      test('startOf(second) truncates to start of current second', () {
+        final dt = EasyDateTime.utc(2025, 6, 15, 14, 30, 45, 123, 456);
+        final start = dt.startOf(DateTimeUnit.second);
+        expect(start.second, 45);
+        expect(start.millisecond, 0);
+        expect(start.microsecond, 0);
+      });
+
+      test('startOf(week) on Monday returns same day at 00:00', () {
+        // 2025-06-16 is Monday
+        final mon = EasyDateTime.utc(2025, 6, 16, 14, 30);
+        final start = mon.startOf(DateTimeUnit.week);
+        expect(start.day, 16);
+        expect(start.weekday, DateTime.monday);
+        expect(start.hour, 0);
+        expect(start.minute, 0);
+      });
+
+      test('startOf(week) on Sunday returns previous Monday', () {
+        // 2025-06-22 is Sunday
+        final sun = EasyDateTime.utc(2025, 6, 22, 10, 0);
+        final start = sun.startOf(DateTimeUnit.week);
+        expect(start.day, 16); // Previous Monday (June 16)
+        expect(start.weekday, DateTime.monday);
+      });
+
+      test('startOf(week) on Wednesday returns Monday of same week', () {
+        // 2025-06-18 is Wednesday
+        final wed = EasyDateTime.utc(2025, 6, 18, 12, 0);
+        final start = wed.startOf(DateTimeUnit.week);
+        expect(start.day, 16);
+        expect(start.weekday, DateTime.monday);
+      });
+
+      test('startOf(week) across month boundary', () {
+        // 2025-07-02 is Wednesday, week starts June 30 (Monday)
+        final wed = EasyDateTime.utc(2025, 7, 2, 12, 0);
+        final start = wed.startOf(DateTimeUnit.week);
+        expect(start.month, 6); // June
+        expect(start.day, 30); // Monday June 30
+        expect(start.weekday, DateTime.monday);
+      });
+
+      test('startOf preserves location', () {
+        final dt = EasyDateTime(2025, 6, 15, 14, 30, 0, 0, 0, TimeZones.tokyo);
+        final start = dt.startOf(DateTimeUnit.day);
+        expect(start.locationName, 'Asia/Tokyo');
+      });
+    });
+
+    group('endOf', () {
+      test('endOf(year) returns last moment of year', () {
+        final dt = EasyDateTime.utc(2025, 6, 15, 14, 30, 45);
+        final end = dt.endOf(DateTimeUnit.year);
+        expect(end.year, 2025);
+        expect(end.month, 12);
+        expect(end.day, 31);
+        expect(end.hour, 23);
+        expect(end.minute, 59);
+        expect(end.second, 59);
+        expect(end.millisecond, 999);
+        expect(end.microsecond, 999);
+      });
+
+      test('endOf(month) returns last moment of month', () {
+        final dt = EasyDateTime.utc(2025, 6, 15, 14, 30, 45);
+        final end = dt.endOf(DateTimeUnit.month);
+        expect(end.month, 6);
+        expect(end.day, 30); // June has 30 days
+        expect(end.hour, 23);
+        expect(end.minute, 59);
+      });
+
+      test('endOf(day) returns end of day', () {
+        final dt = EasyDateTime.utc(2025, 6, 15, 14, 30, 45);
+        final end = dt.endOf(DateTimeUnit.day);
+        expect(end.day, 15);
+        expect(end.hour, 23);
+        expect(end.minute, 59);
+        expect(end.second, 59);
+      });
+
+      test('endOf preserves location', () {
+        final dt = EasyDateTime(2025, 6, 15, 14, 30, 0, 0, 0, TimeZones.tokyo);
+        final end = dt.endOf(DateTimeUnit.day);
+        expect(end.locationName, 'Asia/Tokyo');
+      });
+
+      test('endOf(hour) extends to last moment of current hour', () {
+        final dt = EasyDateTime.utc(2025, 6, 15, 14, 30, 45);
+        final end = dt.endOf(DateTimeUnit.hour);
+        expect(end.hour, 14);
+        expect(end.minute, 59);
+        expect(end.second, 59);
+        expect(end.millisecond, 999);
+        expect(end.microsecond, 999);
+      });
+
+      test('endOf(minute) extends to last moment of current minute', () {
+        final dt = EasyDateTime.utc(2025, 6, 15, 14, 30, 45);
+        final end = dt.endOf(DateTimeUnit.minute);
+        expect(end.minute, 30);
+        expect(end.second, 59);
+        expect(end.millisecond, 999);
+        expect(end.microsecond, 999);
+      });
+
+      test('endOf(second) extends to last moment of current second', () {
+        final dt = EasyDateTime.utc(2025, 6, 15, 14, 30, 45, 123, 456);
+        final end = dt.endOf(DateTimeUnit.second);
+        expect(end.second, 45);
+        expect(end.millisecond, 999);
+        expect(end.microsecond, 999);
+      });
+
+      test('endOf(week) on Sunday returns same day at 23:59:59.999999', () {
+        // 2025-06-22 is Sunday
+        final sun = EasyDateTime.utc(2025, 6, 22, 10, 0);
+        final end = sun.endOf(DateTimeUnit.week);
+        expect(end.day, 22);
+        expect(end.weekday, DateTime.sunday);
+        expect(end.hour, 23);
+        expect(end.minute, 59);
+        expect(end.second, 59);
+        expect(end.millisecond, 999);
+      });
+
+      test('endOf(week) on Monday returns Sunday of same week', () {
+        // 2025-06-16 is Monday
+        final mon = EasyDateTime.utc(2025, 6, 16, 14, 30);
+        final end = mon.endOf(DateTimeUnit.week);
+        expect(end.day, 22); // Sunday June 22
+        expect(end.weekday, DateTime.sunday);
+      });
+
+      test('endOf(week) across month boundary', () {
+        // 2025-06-30 is Monday, week ends July 6 (Sunday)
+        final mon = EasyDateTime.utc(2025, 6, 30, 12, 0);
+        final end = mon.endOf(DateTimeUnit.week);
+        expect(end.month, 7); // July
+        expect(end.day, 6); // Sunday July 6
+        expect(end.weekday, DateTime.sunday);
+      });
+
+      test('endOf(week) preserves location', () {
+        final dt = EasyDateTime(2025, 6, 18, 14, 30, 0, 0, 0, TimeZones.tokyo);
+        final end = dt.endOf(DateTimeUnit.week);
+        expect(end.locationName, 'Asia/Tokyo');
       });
     });
   });

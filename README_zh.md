@@ -16,12 +16,12 @@
 
 在处理复杂时区业务时，Dart 内置的 `DateTime` 及现有第三方库通常面临以下挑战：
 
-| 方案 | 优势 | 局限性 | easy_date_time 的改进 |
-| --- | --- | --- | --- |
-| **DateTime** (原生) | 官方库，零依赖 | 自动转为 UTC/本地时间，**丢失时区信息** | **语义保留**：无损记录解析时的数值与时区偏移。 |
-| **timezone** | 完整的 IANA 实现 | API 繁复，需手动查找时区代码 | **开发友好**：内置常用时区常量（如 `TimeZones.shanghai`）。 |
-| **intl** | 强大的格式化功能 | 侧重展示，缺乏计算能力 | **专注计算**：专注日期逻辑运算，可与 `intl` 无缝配合。 |
-| **flutter_native_timezone** | 获取系统时区 | 仅具备获取功能，无法计算 | **一站式**：解析、计算、转换全链路覆盖。 |
+| 方案 | 特点 | 本库处理方式 |
+|------|------|-------------|
+| **DateTime** | 解析偏移后隐式转换为 UTC | 保留原始时间值 |
+| **timezone** | 需手动调用 `getLocation()` | 提供 `TimeZones.tokyo` 等常量 |
+| **intl** | 专注格式化输出 | 可配合使用 |
+| **jiffy** | 可变对象设计 | 不可变，实现 DateTime 接口 |
 
 **对比示例：**
 
@@ -75,7 +75,7 @@ dt.format('yyyy-MM-dd'); // -> 2025-12-07
 
 ```yaml
 dependencies:
-  easy_date_time: ^0.3.7
+  easy_date_time: ^0.4.1
 ```
 
 **注意**：为了确保时区计算准确，**必须**在应用启动前初始化时区数据库：
@@ -187,6 +187,43 @@ jan31.copyWith(month: 2);        // ⚠️ 3月3日 (常规溢出)
 jan31.copyWithClamped(month: 2); // ✅ 2月28日 (自动修正为当月最后一天)
 ```
 
+### 时间单位边界
+
+截取或扩展到时间单位的边界：
+
+```dart
+final dt = EasyDateTime(2025, 6, 18, 14, 30, 45); // 周三
+
+dt.startOf(DateTimeUnit.day);   // 2025-06-18 00:00:00
+dt.startOf(DateTimeUnit.week);  // 2025-06-16 00:00:00 (周一)
+dt.startOf(DateTimeUnit.month); // 2025-06-01 00:00:00
+
+dt.endOf(DateTimeUnit.day);     // 2025-06-18 23:59:59.999999
+dt.endOf(DateTimeUnit.week);    // 2025-06-22 23:59:59.999999 (周日)
+dt.endOf(DateTimeUnit.month);   // 2025-06-30 23:59:59.999999
+```
+
+> 周边界遵循 ISO 8601 标准（周一为每周第一天）。
+
+---
+
+## 与 intl 集成
+
+如需本地化格式（如 "January" → "一月"），可配合 `intl` 使用：
+
+```dart
+import 'package:intl/intl.dart';
+import 'package:easy_date_time/easy_date_time.dart';
+
+final dt = EasyDateTime.now(location: TimeZones.tokyo);
+
+// 通过 intl 进行本地化格式化
+DateFormat.yMMMMd('zh').format(dt);  // '2025年12月20日'
+DateFormat.yMMMMd('en').format(dt);  // 'December 20, 2025'
+```
+
+> **说明**: `EasyDateTime` 实现了 `DateTime` 接口，可直接用于 `DateFormat.format()`。
+
 ---
 
 ## 日期格式化
@@ -275,11 +312,32 @@ class EasyDateTimeConverter implements JsonConverter<EasyDateTime, String> {
 
 ## 注意事项
 
-* `==` 运算符比较的是**绝对时间戳**是否相等，而非原始数值。
+### 相等性比较
+
+`EasyDateTime` 遵循 Dart `DateTime` 的相等性语义：
+
+```dart
+final utc = EasyDateTime.utc(2025, 1, 1, 0, 0);
+final local = EasyDateTime.parse('2025-01-01T08:00:00+08:00');
+
+// 同一时刻，不同时区类型（UTC vs 非 UTC）
+utc == local;                  // false
+utc.isAtSameMomentAs(local);   // true
+```
+
+| 方法 | 比较内容 | 使用场景 |
+|------|----------|----------|
+| `==` | 时刻 + 时区类型（UTC/非 UTC） | 完全相等 |
+| `isAtSameMomentAs()` | 仅绝对时刻 | 跨时区比较 |
+| `isBefore()` / `isAfter()` | 时间顺序 | 排序、范围检查 |
+
+### 其他说明
+
 * 只有有效的 IANA 时区偏移才能被正确解析，非标准偏移将抛出异常。
 * 请务必调用 `EasyDateTime.initializeTimeZone()` 进行初始化。
 
 ### 安全解析
+
 对于不确定的用户输入，建议使用 `tryParse`：
 
 ```dart

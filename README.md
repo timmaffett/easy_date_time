@@ -16,12 +16,12 @@ A drop-in replacement for DateTime with full IANA timezone support, intuitive ar
 
 Dart's built-in `DateTime` and existing libraries often face limitations when handling complex timezone scenarios:
 
-| Existing Solution | Strengths | Limitations | EasyDateTime Approach |
-|-------------------|-----------|-------------|-----------------------|
-| **DateTime** (Built-in) | Standard, zero dependencies | Auto-converts offsets to UTC/Local, **loses timezone context** | **Semantics Preserved**: Losslessly retains parsed time and offset. |
-| **timezone** | Full IANA support | Complex API, manual zone lookup required | **Developer Friendly**: Type-safe constants (e.g., `TimeZones.tokyo`). |
-| **intl** | Excellent for formatting | Display-focused, lacks calculation APIs | **Calculation Logic**: Works alongside `intl` for complex math sequences. |
-| **flutter_native_timezone** | Access system timezone | Fetch-only, no calculation capabilities | **Complete Solution**: Unified parsing, calculation, and conversion. |
+| Solution | Behavior | This Library |
+|----------|----------|--------------|
+| **DateTime** | Implicitly converts parsed offset to UTC | Preserves original time values |
+| **timezone** | Requires manual `getLocation()` calls | Provides constants like `TimeZones.tokyo` |
+| **intl** | Focused on formatting output | Compatible for combined use |
+| **jiffy** | Mutable object design | Immutable, implements DateTime interface |
 
 **Comparison:**
 
@@ -75,7 +75,7 @@ Add the following to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  easy_date_time: ^0.3.7
+  easy_date_time: ^0.4.2
 ```
 
 **Note**: You **must** initialize the timezone database before using the library.
@@ -90,10 +90,6 @@ void main() {
   runApp(MyApp());
 }
 ```
-
-> [!NOTE]
-> Global functions like `initializeTimeZone()` and `setDefaultLocation()` are **deprecated**.
-> Use the static methods `EasyDateTime.initializeTimeZone()` and `EasyDateTime.setDefaultLocation()` instead.
 
 ---
 
@@ -205,6 +201,24 @@ jan31.copyWith(month: 2);        // ⚠️ Mar 3rd (Standard overflow)
 jan31.copyWithClamped(month: 2); // ✅ Feb 28 (Clamped to last valid day)
 ```
 
+### Start and End of Time Units
+
+Truncate or extend a datetime to the boundary of a time unit:
+
+```dart
+final dt = EasyDateTime(2025, 6, 18, 14, 30, 45); // Wednesday
+
+dt.startOf(DateTimeUnit.day);   // 2025-06-18 00:00:00
+dt.startOf(DateTimeUnit.week);  // 2025-06-16 00:00:00 (Monday)
+dt.startOf(DateTimeUnit.month); // 2025-06-01 00:00:00
+
+dt.endOf(DateTimeUnit.day);     // 2025-06-18 23:59:59.999999
+dt.endOf(DateTimeUnit.week);    // 2025-06-22 23:59:59.999999 (Sunday)
+dt.endOf(DateTimeUnit.month);   // 2025-06-30 23:59:59.999999
+```
+
+> Week boundaries follow ISO 8601 (Monday = first day of week).
+
 ---
 
 ## Date Formatting
@@ -273,6 +287,25 @@ import 'package:easy_date_time/easy_date_time.dart' hide DurationExtension;
 
 ---
 
+## Integration with intl
+
+For locale-aware formatting (e.g., "January" → "一月"), use `EasyDateTime` with the `intl` package:
+
+```dart
+import 'package:intl/intl.dart';
+import 'package:easy_date_time/easy_date_time.dart';
+
+final dt = EasyDateTime.now(location: TimeZones.tokyo);
+
+// Locale-aware formatting via intl
+DateFormat.yMMMMd('ja').format(dt);  // '2025年12月20日'
+DateFormat.yMMMMd('en').format(dt);  // 'December 20, 2025'
+```
+
+> **Note**: `EasyDateTime` implements `DateTime`, so it works directly with `DateFormat.format()`.
+
+---
+
 ## JSON & Serialization
 
 Compatible with `json_serializable` and `freezed` via a custom converter:
@@ -293,7 +326,27 @@ class EasyDateTimeConverter implements JsonConverter<EasyDateTime, String> {
 
 ## Important Notes
 
-* `==` calculates equality based on the **absolute instant**, ignoring timezone differences.
+### Equality Comparison
+
+`EasyDateTime` follows Dart's `DateTime` semantics for equality:
+
+```dart
+final utc = EasyDateTime.utc(2025, 1, 1, 0, 0);
+final local = EasyDateTime.parse('2025-01-01T08:00:00+08:00');
+
+// Same moment, different timezone type (UTC vs non-UTC)
+utc == local;                  // false
+utc.isAtSameMomentAs(local);   // true
+```
+
+| Method | Compares | Use Case |
+|--------|----------|----------|
+| `==` | Moment + timezone type (UTC/non-UTC) | Exact equality |
+| `isAtSameMomentAs()` | Absolute instant only | Cross-timezone comparison |
+| `isBefore()` / `isAfter()` | Chronological order | Sorting, range checks |
+
+### Other Notes
+
 * Only valid IANA timezone offsets are supported; non-standard offsets will throw an error.
 * `EasyDateTime.initializeTimeZone()` must be called before use.
 
